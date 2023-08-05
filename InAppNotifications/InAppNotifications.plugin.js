@@ -3,7 +3,7 @@
  * @source https://github.com/QWERTxD/BetterDiscordPlugins/blob/main/InAppNotifications/InAppNotifications.plugin.js
  * @updateUrl https://raw.githubusercontent.com/QWERTxD/BetterDiscordPlugins/main/InAppNotifications/InAppNotifications.plugin.js
  * @website https://github.com/QWERTxD/BetterDiscordPlugins/tree/main/InAppNotifications
- * @version 1.1.2
+ * @version 1.1.3
 */
 const request = require("request");
 const fs = require("fs");
@@ -17,11 +17,16 @@ const config = {
                 name: "QWERT",
                 discord_id: "678556376640913408",
                 github_username: "QWERTxD"
+            },
+	    {
+                name: "Logandi",
+                discord_id: "473067615913246721",
+                github_username: "BrandonLogandi"
             }
         ],
     github_raw:
       "https://raw.githubusercontent.com/QWERTxD/BetterDiscordPlugins/main/InAppNotifications/InAppNotifications.plugin.js",
-    version: "1.1.2",
+    version: "1.1.3",
     description:
       "Displays notifications such as new messages, friends added in Discord.",
 	},
@@ -30,7 +35,8 @@ const config = {
       "title": "Fixed",
       "type": "fixed",
       "items": [
-        "Fixed mentions not working.",
+        "Removed user discriminators (fixes discriminator showing as #0000 for users with the usernames).",
+	"Added setting to display the user's Display Name instead of their username.",
       ]
     }
   ],
@@ -84,6 +90,13 @@ const config = {
       name: "Display author's highest role color if available",
       note: "Sets the author's color in the notification to its highest role color.",
       id: "roleColor",
+      value: false,
+    },
+    {
+      type: "switch",
+      name: "Show Display Name",
+      note: "Display the author's Display Name instead of their Discord username.",
+      id: "displayGlobalName",
       value: false,
     },
     {
@@ -725,6 +738,8 @@ module.exports = !global.ZeresPluginLibrary
 
         onMessage({ message }) {
           const author = UserStore.getUser(message.author.id);
+          const username = this.settings.displayGlobalName ? message.author.globalName : author.username;
+
 		  const channel = ChannelStore.getChannel(message.channel_id);
           const images = message.attachments.filter(
             (e) =>
@@ -755,22 +770,22 @@ module.exports = !global.ZeresPluginLibrary
                       display: "inline",
                     },
                   },
-                  author.tag
+                  username
                 ),
                 ` (${guild.name}, #${channel.name})`,
               ];
             } else {
-              authorString = `${author.tag} (${guild.name}, #${channel.name})`;
+              authorString = `${username} (${guild.name}, #${channel.name})`;
             }
           }
           if (channel.type === ChannelTypes["GROUP_DM"]) {
-            authorString = `${author.tag} (${channel.name})`;
+            authorString = `${username} (${channel.name})`;
 			if (!channel.name || channel.name === " " || channel.name === "") {
-              authorString = `${author.tag} (${channel.rawRecipients.map((e) => e.username).join(", ")})`;
+              authorString = `${username} (${channel.rawRecipients.map((e) => e.username).join(", ")})`;
             }
           }
           if (channel.type === ChannelTypes["DM"]) {
-            authorString = `${author.tag}`;
+            authorString = `${username}`;
           }
 
           if (message.call) {
